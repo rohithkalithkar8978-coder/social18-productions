@@ -43,7 +43,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans flex flex-col">
-      {/* Header / Navbar with Separation Line */}
+      {/* Header */}
       <header className="w-full px-8 py-6 flex items-center justify-between border-b border-neutral-800/80">
         <div 
           className="flex items-center gap-3 cursor-pointer"
@@ -61,7 +61,7 @@ export default function App() {
       {/* Main Content Area */}
       <main className="flex-1 flex flex-col items-center px-6 pt-10 pb-20 max-w-7xl mx-auto w-full">
         {!selectedEvent ? (
-          /* HOME PAGE: EVENTS LIST */
+          /* HOME PAGE */
           <>
             <div className="text-center max-w-3xl mb-12">
               <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">
@@ -113,7 +113,6 @@ export default function App() {
         ) : (
           /* EVENT DETAIL & REGISTRATION PAGE */
           <div className="w-full max-w-3xl">
-            {/* Back Button */}
             <button 
               onClick={() => { setSelectedEvent(null); setIsRegistered(false); }}
               className="flex items-center gap-2 text-neutral-400 hover:text-white mb-8 transition-colors text-sm font-semibold"
@@ -121,7 +120,6 @@ export default function App() {
               <ArrowLeft className="h-4 w-4" /> Back to All Events
             </button>
 
-            {/* Event Header Banner */}
             <div className="bg-[#121212] border border-neutral-800/80 rounded-2xl p-8 mb-8 shadow-2xl">
               <div className="flex items-center gap-3 mb-4">
                 <span className="bg-[#240c0e] border border-red-900/40 text-red-500 font-semibold text-xs px-3 py-1 rounded-full">
@@ -151,7 +149,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Registration Form / Confirmation Section */}
             <div className="bg-[#121212] border border-neutral-800/80 rounded-2xl p-8 shadow-2xl">
               <h3 className="text-2xl font-bold text-white mb-2">Register Myself</h3>
               <p className="text-neutral-400 text-xs mb-6">Fill in your details below to secure your spot for {selectedEvent.title}.</p>
@@ -161,7 +158,7 @@ export default function App() {
                   <CheckCircle className="h-12 w-12 text-red-500 mb-3" />
                   <h4 className="text-lg font-bold text-white mb-1">Registration Successful!</h4>
                   <p className="text-neutral-400 text-xs">
-                    We have reserved your spot for <span className="text-red-400 font-semibold">{selectedEvent.title}</span>. Check your inbox for confirmation details.
+                    We have reserved your spot for <span className="text-red-400 font-semibold">{selectedEvent.title}</span>.
                   </p>
                 </div>
               ) : (
