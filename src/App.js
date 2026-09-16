@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calendar, MapPin, ArrowLeft, CheckCircle, Activity, Award, HeartPulse } from 'lucide-react';
+import { Calendar, MapPin, ArrowLeft, CheckCircle, Activity, Award, HeartPulse, UserCheck } from 'lucide-react';
 
 const sportsList = [
   {
@@ -98,20 +98,34 @@ export default function App() {
   const [activeView, setActiveView] = useState({ type: 'home', data: null });
   const [formData, setFormData] = useState({ name: '', email: '', phone: '' });
   const [isRegistered, setIsRegistered] = useState(false);
+  const [registrations, setRegistrations] = useState([]);
+  const [isAdminView, setIsAdminView] = useState(false);
 
   const resetToHome = () => {
     setActiveView({ type: 'home', data: null });
     setIsRegistered(false);
+    setIsAdminView(false);
   };
 
   const handleRegisterSubmit = (e) => {
     e.preventDefault();
+    const newEntry = {
+      id: Date.now(),
+      eventTitle: activeView.data?.title || 'General Registration',
+      ...formData,
+      timestamp: new Date().toLocaleString()
+    };
+    
+    // Saves to local state and localStorage for admin viewing
+    const updated = [...registrations, newEntry];
+    setRegistrations(updated);
+    localStorage.setItem('social18_registrations', JSON.stringify(updated));
     setIsRegistered(true);
   };
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white font-sans flex flex-col">
-      {/* Header / Navbar */}
+      {/* Header */}
       <header className="w-full px-8 py-6 flex items-center justify-between border-b border-neutral-800/80 sticky top-0 bg-[#0a0a0a]/90 backdrop-blur-md z-50">
         <div className="flex items-center gap-3 cursor-pointer" onClick={resetToHome}>
           <h1 className="text-2xl font-black tracking-wider text-white">
@@ -121,13 +135,63 @@ export default function App() {
             PRODUCTIONS
           </span>
         </div>
+
+        <button 
+          onClick={() => {
+            const saved = JSON.parse(localStorage.getItem('social18_registrations') || '[]');
+            setRegistrations(saved);
+            setIsAdminView(!isAdminView);
+          }}
+          className="text-xs bg-neutral-900 border border-neutral-800 hover:border-neutral-700 px-3 py-1.5 rounded-lg text-neutral-400 hover:text-white transition-colors"
+        >
+          {isAdminView ? "Close Admin Portal" : "Admin Dashboard"}
+        </button>
       </header>
 
-      {/* Main Container */}
+      {/* Main Content Area */}
       <main className="flex-1 flex flex-col items-center px-6 pt-10 pb-20 max-w-7xl mx-auto w-full">
         
-        {/* HOME VIEW */}
-        {activeView.type === 'home' && (
+        {/* ADMIN DASHBOARD VIEW */}
+        {isAdminView ? (
+          <div className="w-full max-w-4xl bg-[#121212] border border-neutral-800 rounded-2xl p-8 shadow-2xl">
+            <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+              <UserCheck className="h-6 w-6 text-red-500" /> Admin Registration Portal
+            </h2>
+            <p className="text-neutral-400 text-xs mb-6">Confidential database view of registered participants.</p>
+
+            {registrations.length === 0 ? (
+              <div className="text-center py-12 text-neutral-500 text-sm border border-dashed border-neutral-800 rounded-xl">
+                No user registrations recorded yet.
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm text-neutral-300">
+                  <thead className="bg-[#1a1a1a] text-xs text-neutral-400 uppercase">
+                    <tr>
+                      <th className="p-3">Name</th>
+                      <th className="p-3">Email</th>
+                      <th className="p-3">Phone</th>
+                      <th className="p-3">Event</th>
+                      <th className="p-3">Date Registered</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-800">
+                    {registrations.map((reg) => (
+                      <tr key={reg.id} className="hover:bg-neutral-900/50">
+                        <td className="p-3 font-semibold text-white">{reg.name}</td>
+                        <td className="p-3">{reg.email}</td>
+                        <td className="p-3">{reg.phone}</td>
+                        <td className="p-3 text-red-400">{reg.eventTitle}</td>
+                        <td className="p-3 text-xs text-neutral-500">{reg.timestamp}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        ) : activeView.type === 'home' ? (
+          /* HOME VIEW */
           <>
             <div className="text-center max-w-3xl mb-12">
               <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight mb-4">
@@ -138,98 +202,56 @@ export default function App() {
               </p>
             </div>
 
-            {/* SPORTS CARDS SECTION */}
-            <div className="w-full mb-16">
-              <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2 border-b border-neutral-800/80 pb-3">
-                <Activity className="h-5 w-5 text-red-500" /> Featured Sports Disciplines
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                {sportsList.map((sport) => (
-                  <div
-                    key={sport.id}
-                    onClick={() => setActiveView({ type: 'sport', data: sport })}
-                    className="group relative h-72 rounded-2xl overflow-hidden border border-neutral-800/80 cursor-pointer hover:border-red-600/60 transition-all duration-300 shadow-xl flex flex-col justify-end p-5"
-                  >
-                    <img 
-                      src={sport.image} 
-                      alt={sport.title} 
-                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 opacity-60 group-hover:opacity-80"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-                    
-                    <div className="relative z-10">
-                      <h4 className="text-xl font-black text-white group-hover:text-red-500 transition-colors">
-                        {sport.title}
-                      </h4>
-                      <p className="text-xs text-neutral-300 line-clamp-2 mt-1 font-normal">
-                        {sport.tagline}
-                      </p>
-                      <span className="inline-block text-[11px] font-semibold text-red-400 mt-3 group-hover:translate-x-1 transition-transform">
-                        Explore Benefits &rarr;
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
+              {events.map((event) => (
+                <div
+                  key={event.id}
+                  className="bg-[#121212] border border-neutral-800/80 rounded-2xl p-6 flex flex-col justify-between hover:border-neutral-700 transition-all shadow-xl"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-6">
+                      <span className="bg-[#240c0e] border border-red-900/40 text-red-500 font-semibold text-xs px-3 py-1 rounded-full">
+                        {event.price}
                       </span>
+                      <Calendar className="h-5 w-5 text-neutral-400 stroke-[1.5]" />
+                    </div>
+
+                    <h3 className="text-xl font-bold text-white mb-3 tracking-tight">
+                      {event.title}
+                    </h3>
+                    
+                    <p className="text-neutral-400 text-sm mb-6 font-normal line-clamp-3">
+                      {event.description}
+                    </p>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between text-xs text-neutral-500 font-normal mb-4">
+                      <span>{event.location}</span>
+                      <button 
+                        onClick={() => { setActiveView({ type: 'event', data: event }); setIsRegistered(false); }}
+                        className="text-xs font-semibold text-red-500 hover:text-red-400 transition-colors flex items-center gap-1 cursor-pointer"
+                      >
+                        Get Tickets <span className="text-sm">&rarr;</span>
+                      </button>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* EVENTS SECTION */}
-            <div className="w-full">
-              <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2 border-b border-neutral-800/80 pb-3">
-                <Calendar className="h-5 w-5 text-red-500" /> Upcoming Events
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full">
-                {events.map((event) => (
-                  <div
-                    key={event.id}
-                    className="bg-[#121212] border border-neutral-800/80 rounded-2xl p-6 flex flex-col justify-between hover:border-neutral-700 transition-all shadow-xl"
-                  >
-                    <div>
-                      <div className="flex items-center justify-between mb-6">
-                        <span className="bg-[#240c0e] border border-red-900/40 text-red-500 font-semibold text-xs px-3 py-1 rounded-full">
-                          {event.price}
-                        </span>
-                        <Calendar className="h-5 w-5 text-neutral-400 stroke-[1.5]" />
-                      </div>
-
-                      <h3 className="text-xl font-bold text-white mb-3 tracking-tight">
-                        {event.title}
-                      </h3>
-                      
-                      <p className="text-neutral-400 text-sm mb-6 font-normal line-clamp-3">
-                        {event.description}
-                      </p>
-                    </div>
-
-                    <div>
-                      <div className="flex items-center justify-between text-xs text-neutral-500 font-normal mb-4">
-                        <span>{event.location}</span>
-                        <button 
-                          onClick={() => { setActiveView({ type: 'event', data: event }); setIsRegistered(false); }}
-                          className="text-xs font-semibold text-red-500 hover:text-red-400 transition-colors flex items-center gap-1 cursor-pointer"
-                        >
-                          Get Tickets <span className="text-sm">&rarr;</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </>
-        )}
-
-        {/* EVENT DETAIL PAGE */}
-        {activeView.type === 'event' && (
-          <div className="w-full max-w-3xl">
+        ) : activeView.type === 'event' ? (
+          /* EVENT DETAIL PAGE (Redirection target when clicking Get Tickets) */
+          <div className="w-full max-w-4xl space-y-10">
             <button 
               onClick={resetToHome}
-              className="flex items-center gap-2 text-neutral-400 hover:text-white mb-8 transition-colors text-sm font-semibold"
+              className="flex items-center gap-2 text-neutral-400 hover:text-white transition-colors text-sm font-semibold"
             >
               <ArrowLeft className="h-4 w-4" /> Back to Overview
             </button>
 
-            <div className="bg-[#121212] border border-neutral-800/80 rounded-2xl p-8 mb-8 shadow-2xl">
+            {/* 1. Event Details Banner */}
+            <div className="bg-[#121212] border border-neutral-800/80 rounded-2xl p-8 shadow-2xl">
               <div className="flex items-center gap-3 mb-4">
                 <span className="bg-[#240c0e] border border-red-900/40 text-red-500 font-semibold text-xs px-3 py-1 rounded-full">
                   {activeView.data.price}
@@ -258,7 +280,39 @@ export default function App() {
               </div>
             </div>
 
-            {/* REGISTRATION FORM SECTION */}
+            {/* 2. Sports Cards Section (Displayed upon scrolling down) */}
+            <div>
+              <h3 className="text-xl font-bold text-white mb-6 flex items-center gap-2 border-b border-neutral-800/80 pb-3">
+                <Activity className="h-5 w-5 text-red-500" /> Featured Sports Disciplines
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                {sportsList.map((sport) => (
+                  <div
+                    key={sport.id}
+                    onClick={() => setActiveView({ type: 'sport', data: sport })}
+                    className="group relative h-64 rounded-2xl overflow-hidden border border-neutral-800/80 cursor-pointer hover:border-red-600/60 transition-all duration-300 shadow-xl flex flex-col justify-end p-4"
+                  >
+                    <img 
+                      src={sport.image} 
+                      alt={sport.title} 
+                      className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 opacity-60 group-hover:opacity-80"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+                    
+                    <div className="relative z-10">
+                      <h4 className="text-lg font-black text-white group-hover:text-red-500 transition-colors">
+                        {sport.title}
+                      </h4>
+                      <p className="text-xs text-neutral-300 line-clamp-2 mt-1 font-normal">
+                        {sport.tagline}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 3. Register Myself Form Section */}
             <div className="bg-[#121212] border border-neutral-800/80 rounded-2xl p-8 shadow-2xl">
               <h3 className="text-2xl font-bold text-white mb-2">Register Myself</h3>
               <p className="text-neutral-400 text-xs mb-6">Fill in your details below to secure your spot for {activeView.data.title}.</p>
@@ -268,7 +322,7 @@ export default function App() {
                   <CheckCircle className="h-12 w-12 text-red-500 mb-3" />
                   <h4 className="text-lg font-bold text-white mb-1">Registration Successful!</h4>
                   <p className="text-neutral-400 text-xs">
-                    We have reserved your spot for <span className="text-red-400 font-semibold">{activeView.data.title}</span>.
+                    Your details have been securely submitted to event administration.
                   </p>
                 </div>
               ) : (
@@ -286,18 +340,6 @@ export default function App() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-neutral-400 mb-1">Email Address</label>
-                    <input 
-                      type="email" 
-                      required
-                      placeholder="john@example.com"
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full bg-[#1a1a1a] border border-neutral-800 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-red-600 transition-colors"
-                    />
-                  </div>
-
-                  <div>
                     <label className="block text-xs font-semibold text-neutral-400 mb-1">Phone Number</label>
                     <input 
                       type="tel" 
@@ -305,6 +347,18 @@ export default function App() {
                       placeholder="+1 (555) 000-0000"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      className="w-full bg-[#1a1a1a] border border-neutral-800 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-red-600 transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-neutral-400 mb-1">Email Address</label>
+                    <input 
+                      type="email" 
+                      required
+                      placeholder="john@example.com"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       className="w-full bg-[#1a1a1a] border border-neutral-800 text-white rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-red-600 transition-colors"
                     />
                   </div>
@@ -319,10 +373,8 @@ export default function App() {
               )}
             </div>
           </div>
-        )}
-
-        {/* SPORT DETAIL PAGE */}
-        {activeView.type === 'sport' && (
+        ) : (
+          /* SPORT DETAIL PAGE */
           <div className="w-full max-w-4xl">
             <button 
               onClick={resetToHome}
@@ -331,7 +383,6 @@ export default function App() {
               <ArrowLeft className="h-4 w-4" /> Back to All Sports
             </button>
 
-            {/* Hero Image Banner */}
             <div className="relative h-96 rounded-3xl overflow-hidden border border-neutral-800 mb-8 shadow-2xl flex flex-col justify-end p-8 md:p-12">
               <img 
                 src={activeView.data.image} 
@@ -353,7 +404,6 @@ export default function App() {
               </div>
             </div>
 
-            {/* Health & Body Benefits Card */}
             <div className="bg-[#121212] border border-neutral-800 rounded-3xl p-8 md:p-10 shadow-2xl">
               <h3 className="text-2xl font-bold text-white mb-4 flex items-center gap-3">
                 <HeartPulse className="h-7 w-7 text-red-500" /> Essential Body & Health Benefits
